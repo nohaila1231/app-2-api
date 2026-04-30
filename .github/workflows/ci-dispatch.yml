@@ -1,0 +1,33 @@
+name: CI - App2 Monitoring
+
+on:
+  workflow_dispatch:
+    inputs:
+      run-tests:
+        description: 'Run tests?'
+        type: boolean
+        default: true
+      node-version:
+        description: 'Node version (optional)'
+        type: string
+        required: false
+
+jobs:
+  trigger-template:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger template workflow
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.actions.createWorkflowDispatch({
+              owner: 'nohaila1231',
+              repo: 'template-pro',
+              workflow_id: 'ci-workflow-dispatch.yml',
+              ref: 'main',
+              inputs: {
+                'target-repo': 'nohaila1231/app-2-monitoring',
+                'run-tests': '${{ github.event.inputs.run-tests }}',
+                'node-version': '${{ github.event.inputs.node-version }}'
+              }
+            });
