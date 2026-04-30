@@ -12,6 +12,11 @@ on:
         type: string
         required: false
 
+# 🔑 AJOUTER CES PERMISSIONS
+permissions:
+  contents: read
+  actions: write  # Crucial pour déclencher d'autres workflows
+
 jobs:
   trigger-template:
     runs-on: ubuntu-latest
@@ -20,14 +25,22 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: 'nohaila1231',
-              repo: 'template-pro',
-              workflow_id: 'ci-workflow-dispatch.yml',
-              ref: 'main',
-              inputs: {
-                'target-repo': 'nohaila1231/app-2-monitoring',
-                'run-tests': '${{ github.event.inputs.run-tests }}',
-                'node-version': '${{ github.event.inputs.node-version }}'
-              }
-            });
+            try {
+              const response = await github.rest.actions.createWorkflowDispatch({
+                owner: 'nohaila1231',
+                repo: 'template-pro',
+                workflow_id: 'ci-workflow-dispatch.yml',
+                ref: 'main',
+                inputs: {
+                  'target-repo': 'nohaila1231/app-2-api',
+                  'run-tests': '${{ github.event.inputs.run-tests }}',
+                  'node-version': '${{ github.event.inputs.node-version || '' }}'
+                }
+              });
+              console.log('✅ Workflow déclenché avec succès');
+              console.log('Réponse:', response);
+            } catch (error) {
+              console.error('❌ Erreur:', error.message);
+              console.error('Status:', error.status);
+              throw error;
+            }
