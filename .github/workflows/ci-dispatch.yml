@@ -12,18 +12,17 @@ on:
         type: string
         required: false
 
-# 🔑 AJOUTER CES PERMISSIONS
 permissions:
   contents: read
-  actions: write  # Crucial pour déclencher d'autres workflows
 
 jobs:
   trigger-template:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger template workflow
+      - name: Trigger template workflow with PAT
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.PAT_TOKEN }}  # ← AJOUTE ÇA !!!
           script: |
             try {
               const response = await github.rest.actions.createWorkflowDispatch({
@@ -38,9 +37,12 @@ jobs:
                 }
               });
               console.log('✅ Workflow déclenché avec succès');
-              console.log('Réponse:', response);
+              console.log('📦 Target: nohaila1231/app-2-api');
+              console.log('🧪 Tests: ${{ github.event.inputs.run-tests }}');
             } catch (error) {
               console.error('❌ Erreur:', error.message);
-              console.error('Status:', error.status);
+              if (error.status === 403) {
+                console.error('⚠️ Le PAT token a-t-il les droits "repo" et "workflow"?');
+              }
               throw error;
             }
